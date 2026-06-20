@@ -1,11 +1,15 @@
-# 📸 Hybrid OCR Transaction Extractor & AI Budget Assistant 🤖
+<p align="center">
+  <img src="docs/assets/banner.svg" alt="Budget AI Tracker Banner" width="100%">
+</p>
 
-[![Python Version](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
-[![Django](https://img.shields.io/badge/Django-5.2%2B-092E20?logo=django&logoColor=white)](https://www.djangoproject.com/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
-[![Pydantic AI](https://img.shields.io/badge/Pydantic--AI-1.10%2B-E91E63?logo=pydantic&logoColor=white)](https://ai.pydantic.dev/)
-[![OCR Engine](https://img.shields.io/badge/OCR-RapidOCR-FF6F00)](https://github.com/RapidAI/RapidOCR)
-[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+<p align="center">
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white" alt="Python Version"></a>
+  <a href="https://www.djangoproject.com/"><img src="https://img.shields.io/badge/Django-5.2%2B-092E20?logo=django&logoColor=white" alt="Django"></a>
+  <a href="https://fastapi.tiangolo.com/"><img src="https://img.shields.io/badge/FastAPI-0.110%2B-009688?logo=fastapi&logoColor=white" alt="FastAPI"></a>
+  <a href="https://ai.pydantic.dev/"><img src="https://img.shields.io/badge/Pydantic--AI-1.10%2B-E91E63?logo=pydantic&logoColor=white" alt="Pydantic AI"></a>
+  <a href="https://github.com/RapidAI/RapidOCR"><img src="https://img.shields.io/badge/OCR-RapidOCR-FF6F00" alt="OCR Engine"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License"></a>
+</p>
 
 An intelligent, hybrid budget and transaction extraction application. It captures transaction screenshots, runs a local OCR engine to extract raw text, normalizes and extracts structured transaction records using Pydantic AI with Google Gemini, stores them securely in a Django database, and offers a FastAPI-powered chatbot assistant for natural language financial insights—complete with dynamic Mermaid chart rendering!
 
