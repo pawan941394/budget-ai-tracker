@@ -1,150 +1,239 @@
-<p align="center">
-  <img src="banner.png" alt="Hybrid OCR Banner" width="100%">
-</p>
+# 📸 Hybrid OCR Transaction Extractor & AI Budget Assistant 🤖
 
-<h1 align="center">⚡ Hybrid OCR — Transaction Extractor ⚡</h1>
+[![Python Version](https://img.shields.io/badge/Python-3.11%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![Django](https://img.shields.io/badge/Django-5.2%2B-092E20?logo=django&logoColor=white)](https://www.djangoproject.com/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.110%2B-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
+[![Pydantic AI](https://img.shields.io/badge/Pydantic--AI-1.10%2B-E91E63?logo=pydantic&logoColor=white)](https://ai.pydantic.dev/)
+[![OCR Engine](https://img.shields.io/badge/OCR-RapidOCR-FF6F00)](https://github.com/RapidAI/RapidOCR)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-<p align="center">
-  <b>A state-of-the-art hybrid pipeline combining local on-device OCR with LLM-based intelligence to parse and structure receipt/screenshot transaction details into validated JSON.</b>
-</p>
-
-<p align="center">
-  <a href="https://github.com/pawan941394/Hybrid-OCR-Transaction-Extractor/stargazers"><img src="https://img.shields.io/github/stars/pawan941394/Hybrid-OCR-Transaction-Extractor?style=for-the-badge&color=FFD700" alt="Stars"></a>
-  <a href="https://github.com/pawan941394/Hybrid-OCR-Transaction-Extractor/issues"><img src="https://img.shields.io/github/issues/pawan941394/Hybrid-OCR-Transaction-Extractor?style=for-the-badge&color=FF4500" alt="Issues"></a>
-  <a href="https://github.com/pawan941394"><img src="https://img.shields.io/badge/Developer-pawan941394-8A2BE2?style=for-the-badge" alt="Developer"></a>
-  <a href="https://github.com/pawan941394/Hybrid-OCR-Transaction-Extractor/blob/main/LICENSE"><img src="https://img.shields.io/github/license/pawan941394/Hybrid-OCR-Transaction-Extractor?style=for-the-badge&color=2E8B57" alt="License"></a>
-</p>
+An intelligent, hybrid budget and transaction extraction application. It captures transaction screenshots, runs a local OCR engine to extract raw text, normalizes and extracts structured transaction records using Pydantic AI with Google Gemini, stores them securely in a Django database, and offers a FastAPI-powered chatbot assistant for natural language financial insights—complete with dynamic Mermaid chart rendering!
 
 ---
 
-## 📖 Overview
+## 🚀 Key Features
 
-Processing transaction receipts or mobile payment screenshots (e.g., UPI, NetBanking, card payments) often involves noisy backgrounds, low-quality text, and highly variable layouts.
-
-This project implements a **Hybrid Architecture**:
-1. **On-Device OCR Engine**: Leverages `RapidOCR` locally to extract raw, unstructured text tokens with precise spatial awareness.
-2. **Pydantic AI Agent**: Passes the unstructured text to Gemini (via `pydantic-ai`) to distill it and structure it into a strict schema.
-3. **Type-Safe Validation**: Returns a verified `TransactionData` model containing clean fields (amounts, sender/receiver details, payment types, timestamps, reference IDs, and bank names).
+*   📸 **Local RapidOCR Processing** – Local OCR engine reads receipt/transaction screenshots instantly without sending raw images to external API providers.
+*   🤖 **Gemini-Powered Pydantic AI Agent** – Uses `pydantic-ai` with `google:gemini-flash-lite-latest` to parse unstructured OCR text into high-fidelity, structured JSON matching a Pydantic schema.
+*   🔒 **Fernet-Encrypted Credentials** – Securely encrypts user-provided Gemini/LLM API keys at rest in SQLite using symmetric Fernet encryption, dynamically bound to Django's `SECRET_KEY`.
+*   💬 **AI Financial Assistant (Chatbot)** – A conversation agent that answers user queries (e.g., *"How much did I spend at Starbucks?"*) utilizing the user's latest transaction database state as context.
+*   📊 **Dynamic Mermaid Charts** – The chatbot utilizes specialized tools to return interactive Mermaid code blocks:
+    *   `generate_spending_histogram` – Generates a bar chart distribution of transaction amounts.
+    *   `generate_data_schema_diagram` – Generates a class diagram of the underlying database models.
+*   ⚡ **Unified Starlette ASGI Stack** – Mounts Django (handling user authentication, ORM models, and Django Admin) and FastAPI (handling fast AI queries and image upload streams) under a unified Starlette application server.
 
 ---
 
-## 🌀 Workflow
+## 📐 System Architecture & Data Flow
+
+Below is the layout of the hybrid architecture. The client interacts with the unified ASGI server, routing administrative and database tasks to Django, and real-time AI/OCR logic to FastAPI.
 
 ```mermaid
-graph TD
-    A[Receipt/Screenshot Image] -->|Local Execution| B(RapidOCR Engine)
-    B -->|Extract Unstructured Tokens| C(Token Assembler)
-    C -->|Construct Clean Context| D(Gemini LLM Agent)
-    D -->|AI Structuring| E(Pydantic Validation)
-    E -->|JSON Serialization| F[Structured JSON Output]
+flowchart TD
+    subgraph Client
+        User[User / Client App]
+    end
 
-    style A fill:#6a11cb,stroke:#fff,stroke-width:2px,color:#fff
-    style B fill:#2575fc,stroke:#fff,stroke-width:2px,color:#fff
-    style C fill:#4facfe,stroke:#fff,stroke-width:2px,color:#fff
-    style D fill:#f093fb,stroke:#fff,stroke-width:2px,color:#fff
-    style E fill:#43e97b,stroke:#fff,stroke-width:2px,color:#fff
-    style F fill:#00ffff,stroke:#333,stroke-width:2px,color:#333
+    subgraph Starlette ASGI Server
+        Starlette[Starlette ASGI Router]
+        DjangoApp[Django Application]
+        FastAPIApp[FastAPI Application]
+    end
+
+    subgraph External APIs
+        Gemini[Google Gemini API]
+    end
+
+    subgraph Storage
+        DB[(SQLite Database)]
+    end
+
+    User -->|HTTP Requests| Starlette
+    Starlette -->|/api/*| FastAPIApp
+    Starlette -->|/admin or /*| DjangoApp
+
+    %% FastAPI Flow
+    FastAPIApp -->|1. Run OCR| RapidOCR[RapidOCR Engine]
+    FastAPIApp -->|2. Structured Extraction| PydanticAI[Pydantic AI Agent]
+    PydanticAI -->|3. Query Gemini| Gemini
+    FastAPIApp -->|4. Read/Write| DjangoORM[Django ORM]
+    DjangoORM -->|5. Persist| DB
+
+    %% Django Flow
+    DjangoApp -->|User Auth & Credentials| DB
 ```
 
----
+### 📥 Transaction Upload & Processing Pipeline
 
-## ✨ Key Features
-
-| Feature | Description | Tech Used |
-| :--- | :--- | :--- |
-| **Local Text Extraction** | Fast, CPU-friendly OCR to capture tokens from screenshots without cloud dependencies. | `RapidOCR`, `onnxruntime` |
-| **Type-Safe Validation** | Ensures parsed values conform exactly to the expected data structures. | `Pydantic v2` |
-| **LLM-Based Structuring** | Leverages Gemini to handle noisy, out-of-order text tokens and map them to their semantic meaning. | `pydantic-ai`, Gemini Flash Lite |
-| **UPI & Bank Parsing** | Extract key transaction data: UTR ID, UPI handles, sender/receiver names, and banks. | Native schemas |
+1.  **Upload**: The user uploads a receipt image (e.g. UPI transaction screenshot) via `/api/transactions/upload`.
+2.  **OCR Extraction**: `RapidOCR` runs locally to scan the image and convert it into raw string tokens.
+3.  **LLM Structuring**: The raw text tokens are fed into a Pydantic AI agent configured with a strict `TransactionData` schema.
+4.  **Parsing & Validation**: Google Gemini parses the text, extracts transaction metadata (status, amount, sender/receiver UPI IDs, bank, UTR, timestamp), and validates it using Pydantic.
+5.  **Storage**: The structured transaction is appended to the user's database bucket.
 
 ---
 
 ## 🛠️ Tech Stack & Dependencies
 
-- **Core**: Python 3.11+
-- **OCR Engine**: [RapidOCR](https://github.com/RapidAI/RapidOCR)
-- **AI Agent**: [Pydantic AI](https://ai.pydantic.dev/) (powered by Gemini)
-- **Validation**: [Pydantic v2](https://docs.pydantic.dev/latest/)
-- **Environment Management**: `python-dotenv`
+*   **Backend Core**: Python 3.11+
+*   **Web Frameworks**: FastAPI (for AI and OCR services) & Django (for auth, admin, and ORM).
+*   **Routing & Serving**: Starlette & Uvicorn (ASGI server).
+*   **AI & Agents**: Pydantic AI (`pydantic-ai`) & Google Generative AI (`google-generativeai`).
+*   **OCR**: `rapidocr-onnxruntime` (local OCR processor).
+*   **Security**: Cryptography (Fernet symmetric encryption).
+*   **Database**: SQLite3 (default, configurable to PostgreSQL/MySQL via Django settings).
 
 ---
 
-## 🚀 Getting Started
+## ⚙️ Setup & Installation
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/pawan941394/Hybrid-OCR-Transaction-Extractor.git
-cd Hybrid-OCR-Transaction-Extractor
+git clone https://github.com/pawan941394/budget-ai-tracker.git
+cd budget-ai-tracker
 ```
 
-### 2. Environment Setup & Installation
-Using virtual environment is recommended:
+### 2. Set Up Virtual Environment
+It is recommended to use `uv` (a fast Python package installer) or standard `venv`:
 
-```bash
-# Create and activate virtual environment
-python -m venv .venv
-# On Windows:
+**Using `uv`:**
+```powershell
+uv venv
 .venv\Scripts\activate
-# On macOS/Linux:
-source .venv/bin/activate
+uv pip install -r requirements.txt
+```
 
-# Install dependencies
+**Using standard `pip`:**
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-### 3. API Key Configuration
+### 3. Configure Environment Variables
 Create a `.env` file in the root directory:
 ```env
+# Google Gemini API key used by the application
 GOOGLE_API_KEY=your_gemini_api_key_here
 ```
-> [!NOTE]
-> You can obtain a free Gemini API Key from Google AI Studio.
 
----
-
-## 💻 Usage
-
-Run the transaction extractor using the default image (`1.jpeg`):
-
+### 4. Run Migrations & Setup Database
+Initialize your Django database models and create a superuser for the admin portal:
 ```bash
-python main.py
+# Navigate to the budget_app directory
+cd budget_app
+
+# Run migrations
+python manage.py migrate
+
+# Create superuser for Django Admin
+python manage.py createsuperuser
 ```
 
-### Output Example
-The program will run the OCR locally, process it through the LLM, and print the parsed output:
+### 5. Launch the Server
+Start the unified Starlette application server using Uvicorn:
+```bash
+python -m uvicorn budget_app.asgi:application --reload --port 8000
+```
+Your server will be running at `http://127.0.0.1:8000`.
+*   **FastAPI API Docs**: `http://127.0.0.1:8000/api/docs` (Swagger UI)
+*   **Django Admin**: `http://127.0.0.1:8000/admin`
+*   **Healthcheck**: `http://127.0.0.1:8000/health`
 
-```json
-{
-  "status": "success",
-  "amount": 1500.0,
-  "sender_name": "John Doe",
-  "sender_upi": "johndoe@okaxis",
-  "receiver_name": "Store XYZ",
-  "receiver_upi": "storexyz@okicici",
-  "bank": "Axis Bank",
-  "timestamp": "2026-06-10 14:32:00",
-  "reference_id": "123456789012",
-  "payment_type": "sent",
-  "utr_id": "606101432001"
-}
+---
+
+## 🔌 API Endpoint Reference
+
+All FastAPI endpoints are prefixed with `/api` and are documented in detail via Swagger UI.
+
+### 👤 User Management (`/api/users`)
+| Method | Endpoint | Description | Request Body |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/register` | Register a new user with a phone number and password. | `{ "phone_number": "...", "password": "..." }` |
+
+### 🔑 LLM API Key Management (`/api/llm-api-keys`)
+*Keys are automatically encrypted before saving to the database using Fernet symmetric encryption.*
+| Method | Endpoint | Description | Request Body |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/upsert` | Save or update a user's Gemini API key. | `{ "phone_number": "...", "provider": "openai/google", "api_key": "..." }` |
+| **GET** | `/{phone_number}` | Retrieve LLM API key status (checks if active and hashed). | *None* |
+
+### 📸 Transaction Operations (`/api/transactions`)
+| Method | Endpoint | Description | Request Body / Parameters |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/upload` | Upload a transaction screenshot. Automatically triggers local RapidOCR and extracts data using Gemini. | Form-data: `phone_number` (string) & `image` (file) |
+| **POST** | `/upsert` | Manually insert or update a transaction record. | `{ "phone_number": "...", "transaction": { ... } }` |
+| **GET** | `/{phone_number}` | Retrieve all transaction records stored for a specific user. | *None* |
+
+### 💬 Chatbot Assistant (`/api/chat`)
+| Method | Endpoint | Description | Request Body |
+| :--- | :--- | :--- | :--- |
+| **POST** | `/` | Interact with the AI assistant. Incorporates user transactions and chat history automatically. | `{ "phone_number": "...", "message": "...", "session_id": "..." }` |
+| **GET** | `/history/{phone_number}` | Retrieve chat session history for a user. | *None* |
+
+---
+
+## 🤖 AI Assistant Tools (Agent Capabilities)
+
+The Pydantic AI chatbot uses the following built-in tools dynamically based on user prompts:
+
+1.  **`get_recent_transactions`** – Retrieves the user's latest transaction logs.
+2.  **`grep_transaction_data`** – Searches raw transactions using a text query.
+3.  **`generate_spending_histogram`** – Aggregates transaction amounts into bins and responds with a beautiful **Mermaid XYChart-Beta** diagram representing spending frequency.
+4.  **`generate_data_schema_diagram`** – Responds with a **Mermaid Class Diagram** detailing the transaction data structures.
+5.  **`current_date_and_time`** – Computes the current date/time to resolve temporal queries like *"Show me transactions from this week"*.
+
+---
+
+## 🔒 Security Architecture
+
+The application implements symmetric encryption to safeguard sensitive API keys in public databases:
+*   **Fernet Encryption**: Before any `Llmapikey` record is saved, the API key string is encrypted using cryptography's `Fernet` module.
+*   **Key Derivation**: The encryption key is derived by running a SHA-256 hash on Django's secret `SECRET_KEY`.
+*   **Decryption**: When a user uploads a transaction or chats with the assistant, the backend decrypts the API key in-memory to execute the request, ensuring the plain-text key is never written to disk or exposed in database dumps.
+
+---
+
+## ⬆️ How to Upload this Project to GitHub
+
+Ready to publish? Follow these simple commands to upload this repository to your GitHub account:
+
+### Step 1: Initialize Git & Stage Files
+*(Run these commands from the project root directory)*
+```bash
+# Initialize a local Git repository (if not already initialized)
+git init
+
+# Stage all files (this respects your .gitignore settings)
+git add .
+
+# Create your initial commit
+git commit -m "feat: initial commit of Hybrid OCR Transaction Extractor & Budget App"
+```
+
+### Step 2: Create a Repository on GitHub
+1. Go to [GitHub](https://github.com/) and click **New Repository**.
+2. Name your repository `budget-ai-tracker`.
+3. Leave it public/private, and do **NOT** initialize it with a README, `.gitignore`, or License (as we have already created them).
+4. Click **Create Repository**.
+
+### Step 3: Link and Push
+Copy the Git URL of your repository and run the following in your terminal:
+```bash
+# Rename the default branch to main
+git branch -M main
+
+# Link your local repository to GitHub
+git remote add origin https://github.com/pawan941394/budget-ai-tracker.git
+
+# Push your code to GitHub
+git push -u origin main
 ```
 
 ---
 
-## 👥 Connect With Me
-
-Let's collaborate! You can reach out to me via these platforms:
-
-<p align="center">
-  <a href="https://github.com/pawan941394"><img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub"></a>
-  <a href="https://www.linkedin.com/in/pawan941394/"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" alt="LinkedIn"></a>
-  <a href="https://www.youtube.com/@Pawankumar-py4tk"><img src="https://img.shields.io/badge/YouTube-FF0000?style=for-the-badge&logo=youtube&logoColor=white" alt="YouTube"></a>
-</p>
+## 📝 License
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
-
-## ⚖️ License
-
-Distributed under the MIT License. See `LICENSE` for more information.
-
-<p align="right">(<a href="#top">back to top</a>)</p>
+*Created by [Pawan](https://github.com/pawan941394) - Feel free to star the repo ⭐️ if you find this project useful!*

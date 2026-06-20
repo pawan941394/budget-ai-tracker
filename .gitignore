@@ -1,13 +1,40 @@
 # Python-generated files
 __pycache__/
-*.py[oc]
+*.py[cod]
+*$py.class
 build/
 dist/
 wheels/
-*.egg-info
+*.egg-info/
 
 # Virtual environments
-.venv
+.venv/
+venv/
+ENV/
 
+# Databases & local configurations
+*.sqlite3
+*.db
 .env
-.jpeg
+.env.*
+
+# IDE / Editors
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# OS files
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Media / Temp files
+*.jpeg
+*.jpg
+*.png
+*.gif
+*.log
